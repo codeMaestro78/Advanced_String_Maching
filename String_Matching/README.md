@@ -68,3 +68,4 @@ String Matching Visualizer is a React-based application that demonstrates differ
 
 - Utilizes a rolling hash function for efficient pattern searching.
 
+```
