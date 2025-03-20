@@ -785,59 +785,6 @@ const StringMatchingVisualizer = () => {
 
       {/* Comparison Charts */}
 
-      {/* Efficiency Comparison Bar Chart */}
-      <div className="border rounded p-4 mb-6">
-        <h2 className="text-lg font-semibold mb-2">Algorithm Efficiency</h2>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={[
-                {
-                  name: "Time Complexity",
-                  naive: 80,
-                  kmp: 40,
-                  rabinKarp: 50,
-                },
-                {
-                  name: "Space Complexity",
-                  naive: 20,
-                  kmp: 50,
-                  rabinKarp: 40,
-                },
-                {
-                  name: "Implementation Complexity",
-                  naive: 20,
-                  kmp: 70,
-                  rabinKarp: 60,
-                },
-              ]}
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis
-                label={{
-                  value: "Relative Complexity",
-                  angle: -90,
-                  position: "insideLeft",
-                }}
-              />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="naive" name="Naive" fill="#8884d8" />
-              <Bar dataKey="kmp" name="KMP" fill="#82ca9d" />
-              <Bar dataKey="rabinKarp" name="Rabin-Karp" fill="#ffc658" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="mt-2 text-sm text-gray-600">
-          <p>
-            Note: Lower values represent better efficiency. Values are relative
-            and for educational purposes.
-          </p>
-        </div>
-      </div>
-
       {/* Algorithm Explanation */}
       <div className="border rounded p-4">
         <h2 className="text-lg font-semibold mb-2">Algorithm Explanation</h2>
@@ -894,3 +841,58 @@ const StringMatchingVisualizer = () => {
   );
 };
 export default StringMatchingVisualizer;
+
+// {
+//   /* Efficiency Comparison Bar Chart */
+// }
+// <div className="border rounded p-4 mb-6">
+//   <h2 className="text-lg font-semibold mb-2">Algorithm Efficiency</h2>
+//   <div className="h-64">
+//     <ResponsiveContainer width="100%" height="100%">
+//       <BarChart
+//         data={[
+//           {
+//             name: "Time Complexity",
+//             naive: 80,
+//             kmp: 40,
+//             rabinKarp: 50,
+//           },
+//           {
+//             name: "Space Complexity",
+//             naive: 20,
+//             kmp: 50,
+//             rabinKarp: 40,
+//           },
+//           {
+//             name: "Implementation Complexity",
+//             naive: 20,
+//             kmp: 70,
+//             rabinKarp: 60,
+//           },
+//         ]}
+//         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+//       >
+//         <CartesianGrid strokeDasharray="3 3" />
+//         <XAxis dataKey="name" />
+//         <YAxis
+//           label={{
+//             value: "Relative Complexity",
+//             angle: -90,
+//             position: "insideLeft",
+//           }}
+//         />
+//         <Tooltip />
+//         <Legend />
+//         <Bar dataKey="naive" name="Naive" fill="#8884d8" />
+//         <Bar dataKey="kmp" name="KMP" fill="#82ca9d" />
+//         <Bar dataKey="rabinKarp" name="Rabin-Karp" fill="#ffc658" />
+//       </BarChart>
+//     </ResponsiveContainer>
+//   </div>
+//   <div className="mt-2 text-sm text-gray-600">
+//     <p>
+//       Note: Lower values represent better efficiency. Values are relative and
+//       for educational purposes.
+//     </p>
+//   </div>
+// </div>;
