@@ -1,20 +1,8 @@
 import React, { useState, useEffect } from "react";
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
 
 const StringMatchingVisualizer = () => {
-  const [text, setText] = useState("ABABDABACDABABCABAB");
-  const [pattern, setPattern] = useState("ABABCABAB");
+  const [text, setText] = useState("");
+  const [pattern, setPattern] = useState("");
   const [algorithm, setAlgorithm] = useState("naive");
   const [speed, setSpeed] = useState(500);
   const [isRunning, setIsRunning] = useState(false);
@@ -24,7 +12,6 @@ const StringMatchingVisualizer = () => {
   const [matches, setMatches] = useState([]);
   const [prefixTable, setPrefixTable] = useState([]);
   const [currentHash, setCurrentHash] = useState(null);
-  const [performanceData, setPerformanceData] = useState([]);
   const [comparisonHistory, setComparisonHistory] = useState([]);
 
   // Reset visualization when text, pattern or algorithm changes
@@ -358,157 +345,6 @@ const StringMatchingVisualizer = () => {
     return steps;
   };
 
-  // Generate performance data for all algorithms
-  const generatePerformanceData = () => {
-    // Text patterns of increasing length to test
-    const textLengths = [10, 20, 50, 100, 200, 500, 1000];
-    const results = [];
-
-    // Generate random text of given length
-    const generateRandomText = (length) => {
-      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-      let result = "";
-      for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return result;
-    };
-
-    // Generate pattern (always 5% of text length)
-    const generatePattern = (text) => {
-      const patternLength = Math.max(3, Math.floor(text.length * 0.05));
-      const startIndex = Math.floor(
-        Math.random() * (text.length - patternLength)
-      );
-      return text.substring(startIndex, startIndex + patternLength);
-    };
-
-    // Count comparisons for each algorithm
-    const countNaiveComparisons = (text, pattern) => {
-      let comparisons = 0;
-      for (let i = 0; i <= text.length - pattern.length; i++) {
-        for (let j = 0; j < pattern.length; j++) {
-          comparisons++;
-          if (text[i + j] !== pattern[j]) break;
-        }
-      }
-      return comparisons;
-    };
-
-    const countKMPComparisons = (text, pattern) => {
-      let comparisons = 0;
-
-      // Compute LPS array
-      const lps = Array(pattern.length).fill(0);
-      let len = 0;
-      let i = 1;
-      while (i < pattern.length) {
-        comparisons++;
-        if (pattern[i] === pattern[len]) {
-          len++;
-          lps[i] = len;
-          i++;
-        } else {
-          if (len !== 0) {
-            len = lps[len - 1];
-          } else {
-            lps[i] = 0;
-            i++;
-          }
-        }
-      }
-
-      // KMP search
-      i = 0;
-      let j = 0;
-      while (i < text.length) {
-        comparisons++;
-        if (text[i] === pattern[j]) {
-          i++;
-          j++;
-        }
-
-        if (j === pattern.length) {
-          j = lps[j - 1];
-        } else if (i < text.length && text[i] !== pattern[j]) {
-          if (j !== 0) {
-            j = lps[j - 1];
-          } else {
-            i++;
-          }
-        }
-      }
-
-      return comparisons;
-    };
-
-    const countRabinKarpComparisons = (text, pattern) => {
-      const prime = 101;
-      let comparisons = 0;
-
-      const calculateHash = (str, start, end) => {
-        let hash = 0;
-        for (let i = start; i < end; i++) {
-          hash = (hash * 256 + str.charCodeAt(i)) % prime;
-        }
-        return hash;
-      };
-
-      const patternHash = calculateHash(pattern, 0, pattern.length);
-      let textHash = calculateHash(text, 0, pattern.length);
-
-      for (let i = 0; i <= text.length - pattern.length; i++) {
-        comparisons++; // Hash comparison
-
-        if (textHash === patternHash) {
-          for (let j = 0; j < pattern.length; j++) {
-            comparisons++;
-            if (text[i + j] !== pattern[j]) break;
-          }
-        }
-
-        if (i < text.length - pattern.length) {
-          textHash =
-            ((textHash -
-              ((text.charCodeAt(i) * Math.pow(256, pattern.length - 1)) %
-                prime) +
-              prime) *
-              256 +
-              text.charCodeAt(i + pattern.length)) %
-            prime;
-        }
-      }
-
-      return comparisons;
-    };
-
-    // Generate data for each text length
-    for (const length of textLengths) {
-      const sampleText = generateRandomText(length);
-      const samplePattern = generatePattern(sampleText);
-
-      const naiveComparisons = countNaiveComparisons(sampleText, samplePattern);
-      const kmpComparisons = countKMPComparisons(sampleText, samplePattern);
-      const rabinKarpComparisons = countRabinKarpComparisons(
-        sampleText,
-        samplePattern
-      );
-
-      results.push({
-        textLength: length,
-        naive: naiveComparisons,
-        kmp: kmpComparisons,
-        rabinKarp: rabinKarpComparisons,
-      });
-    }
-
-    setPerformanceData(results);
-  };
-
-  useEffect(() => {
-    generatePerformanceData();
-  }, []);
-
   const startVisualization = () => {
     const generatedSteps = generateSteps();
     if (generatedSteps.length === 0) return;
@@ -782,8 +618,6 @@ const StringMatchingVisualizer = () => {
           </div>
         </div>
       </div>
-
-      {/* Comparison Charts */}
 
       {/* Algorithm Explanation */}
       <div className="border rounded p-4">
