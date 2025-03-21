@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 
 const StringMatchingVisualizer = () => {
+  // State setup
   const [text, setText] = useState("");
   const [pattern, setPattern] = useState("");
   const [algorithm, setAlgorithm] = useState("naive");
@@ -14,7 +15,7 @@ const StringMatchingVisualizer = () => {
   const [currentHash, setCurrentHash] = useState(null);
   const [comparisonHistory, setComparisonHistory] = useState([]);
 
-  // Reset visualization when text, pattern or algorithm changes
+  // Reset everything when text, pattern or algorithm changes
   useEffect(() => {
     resetVisualization();
   }, [text, pattern, algorithm]);
@@ -30,43 +31,39 @@ const StringMatchingVisualizer = () => {
     setComparisonHistory([]);
   };
 
-  // Generate visualization steps based on selected algorithm
+  // Pick which algorithm to use
   const generateSteps = () => {
-    let generatedSteps = [];
+    let steps = [];
     setComparisons(0);
 
-    switch (algorithm) {
-      case "naive":
-        generatedSteps = naiveStringMatching();
-        break;
-      case "kmp":
-        generatedSteps = kmpStringMatching();
-        break;
-      case "rabin-karp":
-        generatedSteps = rabinKarpStringMatching();
-        break;
-      default:
-        break;
+    if (algorithm === "naive") {
+      steps = naiveStringMatching();
+    } else if (algorithm === "kmp") {
+      steps = kmpStringMatching();
+    } else if (algorithm === "rabin-karp") {
+      steps = rabinKarpStringMatching();
     }
 
-    setSteps(generatedSteps);
-    return generatedSteps;
+    setSteps(steps);
+    return steps;
   };
 
-  // Naive string matching algorithm
+  // Good old brute force approach
   const naiveStringMatching = () => {
     const steps = [];
     const foundMatches = [];
     let totalComparisons = 0;
     const history = [];
 
+    // For each possible starting position in the text
     for (let i = 0; i <= text.length - pattern.length; i++) {
       let j;
       const currentComparisons = [];
       let stepComparisons = 0;
 
+      // Try to match pattern starting at position i
       for (j = 0; j < pattern.length; j++) {
-        // Record each comparison
+        // Keep track of what we're comparing
         currentComparisons.push({
           textIndex: i + j,
           patternIndex: j,
@@ -75,19 +72,19 @@ const StringMatchingVisualizer = () => {
         totalComparisons++;
         stepComparisons++;
 
+        // Break early if mismatch found
         if (text[i + j] !== pattern[j]) {
           break;
         }
       }
 
-      // Add to comparison history
       history.push({
         step: i,
         comparisons: stepComparisons,
         totalComparisons: totalComparisons,
       });
 
-      // Add step
+      // Add this step to our visualization
       steps.push({
         textIndex: i,
         patternIndex: 0,
@@ -99,6 +96,7 @@ const StringMatchingVisualizer = () => {
             : `Mismatch at position ${i + j}, shifting pattern.`,
       });
 
+      // If we made it through the whole pattern, we found a match
       if (j === pattern.length) {
         foundMatches.push(i);
       }
@@ -110,7 +108,7 @@ const StringMatchingVisualizer = () => {
     return steps;
   };
 
-  // Compute KMP prefix table
+  // Helper function for KMP - builds the prefix table
   const computeKMPPrefixTable = () => {
     const lps = Array(pattern.length).fill(0);
     let len = 0;
@@ -118,13 +116,16 @@ const StringMatchingVisualizer = () => {
 
     while (i < pattern.length) {
       if (pattern[i] === pattern[len]) {
+        // Found matching prefix-suffix
         len++;
         lps[i] = len;
         i++;
       } else {
         if (len !== 0) {
+          // Try shorter prefix
           len = lps[len - 1];
         } else {
+          // No matching prefix found
           lps[i] = 0;
           i++;
         }
@@ -135,23 +136,24 @@ const StringMatchingVisualizer = () => {
     return lps;
   };
 
-  // KMP string matching algorithm
+  // KMP algorithm - uses prefix table to skip redundant comparisons
   const kmpStringMatching = () => {
+    // First get our prefix table
     const lps = computeKMPPrefixTable();
     const steps = [];
     const foundMatches = [];
     let totalComparisons = 0;
     const history = [];
 
-    let i = 0;
-    let j = 0;
+    let i = 0; // index for text
+    let j = 0; // index for pattern
     let step = 0;
 
     while (i < text.length) {
       const currentComparisons = [];
       let stepComparisons = 0;
 
-      // Record the comparison
+      // Record what we're comparing
       currentComparisons.push({
         textIndex: i,
         patternIndex: j,
@@ -161,10 +163,12 @@ const StringMatchingVisualizer = () => {
       stepComparisons++;
 
       if (text[i] === pattern[j]) {
+        // Characters match, move both pointers
         i++;
         j++;
       }
 
+      // Check if we've found a complete match
       if (j === pattern.length) {
         foundMatches.push(i - j);
         steps.push({
@@ -182,9 +186,13 @@ const StringMatchingVisualizer = () => {
           totalComparisons: totalComparisons,
         });
 
+        // Use prefix table to slide pattern
         j = lps[j - 1];
-      } else if (i < text.length && text[i] !== pattern[j]) {
+      }
+      // Handle mismatches
+      else if (i < text.length && text[i] !== pattern[j]) {
         if (j !== 0) {
+          // Use the prefix table to skip redundant comparisons
           const prefixUse = {
             oldJ: j,
             newJ: lps[j - 1],
@@ -200,6 +208,7 @@ const StringMatchingVisualizer = () => {
             prefixUse: prefixUse,
           });
         } else {
+          // At start of pattern, just move text pointer
           steps.push({
             textIndex: i - j,
             patternIndex: 0,
@@ -225,15 +234,15 @@ const StringMatchingVisualizer = () => {
     return steps;
   };
 
-  // Rabin-Karp string matching algorithm
+  // Rabin-Karp algorithm - uses hashing to speed up comparison
   const rabinKarpStringMatching = () => {
-    const prime = 101;
+    const prime = 101; // Just a small prime number for our demo
     const steps = [];
     const foundMatches = [];
     let totalComparisons = 0;
     const history = [];
 
-    // Calculate hash for pattern and first window
+    // Hash function for strings
     const calculateHash = (str, start, end) => {
       let hash = 0;
       for (let i = start; i < end; i++) {
@@ -242,14 +251,19 @@ const StringMatchingVisualizer = () => {
       return hash;
     };
 
+    // Get pattern hash once
     const patternHash = calculateHash(pattern, 0, pattern.length);
+
+    // Get hash of first window of text
     let textHash = calculateHash(text, 0, pattern.length);
 
+    // Slide window through text
     for (let i = 0; i <= text.length - pattern.length; i++) {
       const currentComparisons = [];
       let hashMatch = textHash === patternHash;
       let stepComparisons = 0;
 
+      // Store current hash values for visualization
       setCurrentHash({
         patternHash,
         textHash,
@@ -260,7 +274,7 @@ const StringMatchingVisualizer = () => {
       stepComparisons++;
       totalComparisons++;
 
-      // If hashes match, check characters
+      // Only check character by character if hash matches
       if (hashMatch) {
         let j;
         for (j = 0; j < pattern.length; j++) {
@@ -272,11 +286,13 @@ const StringMatchingVisualizer = () => {
           totalComparisons++;
           stepComparisons++;
 
+          // Break early on mismatch
           if (text[i + j] !== pattern[j]) {
             break;
           }
         }
 
+        // Check if we found a match
         if (j === pattern.length) {
           foundMatches.push(i);
           steps.push({
@@ -292,6 +308,7 @@ const StringMatchingVisualizer = () => {
             },
           });
         } else {
+          // Hash collision but strings don't match
           steps.push({
             textIndex: i,
             patternIndex: 0,
@@ -307,6 +324,7 @@ const StringMatchingVisualizer = () => {
           });
         }
       } else {
+        // Hashes don't match, no need to check characters
         steps.push({
           textIndex: i,
           patternIndex: 0,
@@ -327,8 +345,9 @@ const StringMatchingVisualizer = () => {
         totalComparisons: totalComparisons,
       });
 
-      // Calculate hash for next window
+      // Calculate rolling hash for next window (clever trick to avoid recalculating whole hash)
       if (i < text.length - pattern.length) {
+        // Remove leftmost character and add rightmost character
         textHash =
           ((textHash -
             ((text.charCodeAt(i) * Math.pow(256, pattern.length - 1)) % prime) +
@@ -345,6 +364,7 @@ const StringMatchingVisualizer = () => {
     return steps;
   };
 
+  // Run the visualization with animation
   const startVisualization = () => {
     const generatedSteps = generateSteps();
     if (generatedSteps.length === 0) return;
@@ -352,9 +372,11 @@ const StringMatchingVisualizer = () => {
     setIsRunning(true);
     setCurrentStep(0);
 
+    // Set up interval for animation
     const interval = setInterval(() => {
       setCurrentStep((prevStep) => {
         const nextStep = prevStep + 1;
+        // Stop when we reach the end
         if (nextStep >= generatedSteps.length) {
           clearInterval(interval);
           setIsRunning(false);
@@ -364,9 +386,11 @@ const StringMatchingVisualizer = () => {
       });
     }, speed);
 
+    // Cleanup function
     return () => clearInterval(interval);
   };
 
+  // Get current step data for rendering
   const currentStepData = steps[currentStep] || {};
 
   return (
@@ -519,11 +543,13 @@ const StringMatchingVisualizer = () => {
 
         {/* Pattern positioning */}
         <div className="flex mb-4">
+          {/* Spaces before pattern */}
           {Array(currentStepData.textIndex || 0)
             .fill(" ")
             .map((_, i) => (
               <div key={i} className="w-8 h-8"></div>
             ))}
+          {/* Pattern characters */}
           {pattern.split("").map((char, index) => (
             <div
               key={index}
@@ -544,7 +570,7 @@ const StringMatchingVisualizer = () => {
           ))}
         </div>
 
-        {/* Algorithm-specific information */}
+        {/* KMP-specific information */}
         {algorithm === "kmp" && prefixTable.length > 0 && (
           <div className="mb-4">
             <h3 className="text-md font-semibold mb-1">KMP Prefix Table:</h3>
@@ -573,6 +599,7 @@ const StringMatchingVisualizer = () => {
           </div>
         )}
 
+        {/* Rabin-Karp-specific information */}
         {algorithm === "rabin-karp" && currentStepData.hashInfo && (
           <div className="mb-4">
             <h3 className="text-md font-semibold mb-1">Hash Information:</h3>
@@ -674,59 +701,5 @@ const StringMatchingVisualizer = () => {
     </div>
   );
 };
-export default StringMatchingVisualizer;
 
-// {
-//   /* Efficiency Comparison Bar Chart */
-// }
-// <div className="border rounded p-4 mb-6">
-//   <h2 className="text-lg font-semibold mb-2">Algorithm Efficiency</h2>
-//   <div className="h-64">
-//     <ResponsiveContainer width="100%" height="100%">
-//       <BarChart
-//         data={[
-//           {
-//             name: "Time Complexity",
-//             naive: 80,
-//             kmp: 40,
-//             rabinKarp: 50,
-//           },
-//           {
-//             name: "Space Complexity",
-//             naive: 20,
-//             kmp: 50,
-//             rabinKarp: 40,
-//           },
-//           {
-//             name: "Implementation Complexity",
-//             naive: 20,
-//             kmp: 70,
-//             rabinKarp: 60,
-//           },
-//         ]}
-//         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-//       >
-//         <CartesianGrid strokeDasharray="3 3" />
-//         <XAxis dataKey="name" />
-//         <YAxis
-//           label={{
-//             value: "Relative Complexity",
-//             angle: -90,
-//             position: "insideLeft",
-//           }}
-//         />
-//         <Tooltip />
-//         <Legend />
-//         <Bar dataKey="naive" name="Naive" fill="#8884d8" />
-//         <Bar dataKey="kmp" name="KMP" fill="#82ca9d" />
-//         <Bar dataKey="rabinKarp" name="Rabin-Karp" fill="#ffc658" />
-//       </BarChart>
-//     </ResponsiveContainer>
-//   </div>
-//   <div className="mt-2 text-sm text-gray-600">
-//     <p>
-//       Note: Lower values represent better efficiency. Values are relative and
-//       for educational purposes.
-//     </p>
-//   </div>
-// </div>;
+export default StringMatchingVisualizer;
